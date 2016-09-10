@@ -6,6 +6,7 @@ https://stackoverflow.com/questions/39398312
 """
 import argparse
 import asyncio
+from asyncio import as_completed
 
 
 class FloatSpecialZero(float):
@@ -27,18 +28,17 @@ async def sleepy(value):
     return await asyncio.sleep(FloatSpecialZero(value), result=value)
 
 
-async def main(input_values, live=False):
-    """Fire off an async timer for each input value.
+async def printy(value):
+    """Like sleepy, but it prints the value before returning."""
+    result = await sleepy(value)
+    print(result)
+    return result
 
-    If live == True, print the values as they come back.
-    """
-    result = []
-    for sleeper in asyncio.as_completed(map(sleepy, input_values)):
-        awoken = await sleeper
-        if live:
-            print(awoken)
-        result.append(awoken)
-    print(' '.join(result))
+
+async def main(input_values, live=False):
+    """Fire off an async timer for each input value."""
+    f = printy if live else sleepy
+    print(' '.join([await v for v in as_completed(map(f, input_values))]))
 
 
 if __name__ == '__main__':
